@@ -42,11 +42,18 @@ fi
 
 rm -rf $STAGE2STD
 
+export RUSTFLAGS="-Z merge-functions=disabled -Z share-generics=no --emit=obj -C code-model=large -C relocation-model=static"
+echo RUSTFLAGS=$RUSTFLAGS
+
 echo "BUILDING UP TO STAGE 2'S ALLOC" && sleep 2
 ./x.py build --config "$CFG" library/alloc $KEEP --stage 2 --target ./x86_64-theseus.json
 
 # Klim's solution to rustc-dep-of-std
-export RUSTFLAGS="-L$STAGE2STD/x86_64-theseus/release/deps"
+export RUSTFLAGS="$RUSTFLAGS -L$STAGE2STD/x86_64-theseus/release/deps"
+echo RUSTFLAGS=$RUSTFLAGS
 
 echo "BUILDING STAGE 2" && sleep 2
 ./x.py build --config "$CFG" $KEEP --stage 2 --target ./x86_64-theseus.json
+
+echo "ADDING TOOL BINARIES TO THE TOOLCHAIN"
+cp build/x86_64-unknown-linux-gnu/stage2-tools-bin/* build/x86_64-unknown-linux-gnu/stage2/bin
